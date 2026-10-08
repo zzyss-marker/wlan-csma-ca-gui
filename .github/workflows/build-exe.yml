@@ -6,7 +6,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -74,3 +74,22 @@ jobs:
           path: dist/WlanLab-CSMA-CA.exe
           if-no-files-found: error
           retention-days: 30
+
+      # 手动触发（Actions → Run workflow）时才发布/更新 Release，
+      # 这样普通 push 只出 artifact，公开下载链接由这一步维护。
+      - name: 发布到 Release
+        if: github.event_name == 'workflow_dispatch'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "win-exe"
+          $exe = "dist/WlanLab-CSMA-CA.exe"
+          $notes = "免安装单文件版，Win10 / Win11 64 位。双击即运行；导出的 CSV 和 pcap 写在 exe 同级目录的 out 文件夹里。首次启动要 3~8 秒解压，属正常现象。"
+          if (gh release view $tag 2>$null) {
+            gh release upload $tag $exe --clobber
+            gh release edit $tag --latest --notes $notes
+          } else {
+            gh release create $tag $exe --title "Windows 免安装 exe" --notes $notes --latest
+          }
+          gh release view $tag | Select-Object -First 12
