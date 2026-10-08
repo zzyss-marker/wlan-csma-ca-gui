@@ -1,0 +1,5 @@
+# 打包 exe 用的依赖（GUI 运行期依赖只有 matplotlib，仿真核心零第三方依赖）
+# netcore/__init__ 会 import crypto，所以 cryptography 也必须打进包里。
+matplotlib>=3.8,<3.10
+cryptography>=42,<44
+pyinstaller>=6.6,<7
